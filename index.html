@@ -1676,7 +1676,7 @@ attributes(x)</code></pre>
 ## $dimnames[[2]]
 ## [1] &quot;a&quot;  &quot;pi&quot;</code></pre>
 <h1>
-Data Types- Vectors and Lists
+Data Types- Vectors,Lists &amp; Data frames
 </h1>
 <p><b>So what is a vector then? </b></p>
 <p>A vector is the simplest type of data structure in <b>R</b> Simply put, a <b>vector</b> is a sequence of data elements of the basic type. Members of vectors are called components.</p>
@@ -1813,6 +1813,9 @@ as.numeric(x)</code></pre>
 <h2>
 Lists
 </h2>
+<h3>
+Creating List
+</h3>
 <p>Lists are a special type of vector that can contain elements of different classes. Lists are a very important data type in R and you should get to know them well</p>
 <pre class="r"><code>x &lt;- list(1, &quot;a&quot;, TRUE, 1+4i)
 x</code></pre>
@@ -1829,6 +1832,120 @@ x</code></pre>
 ## [1] 1+4i</code></pre>
 <pre class="r"><code>typeof(x)</code></pre>
 <pre><code>## [1] &quot;list&quot;</code></pre>
+<pre class="r"><code>str(x)</code></pre>
+<pre><code>## List of 4
+##  $ : num 1
+##  $ : chr &quot;a&quot;
+##  $ : logi TRUE
+##  $ : cplx 1+4i</code></pre>
+<p>Lists are sometimes called <b>recursive</b> vectors because a list can contain other lists. This makes them fundamentally different from atomic vectors.</p>
+<pre class="r"><code>list &lt;- list(list(list(1,&quot;a&quot;)))
+str(list)</code></pre>
+<pre><code>## List of 1
+##  $ :List of 1
+##   ..$ :List of 2
+##   .. ..$ : num 1
+##   .. ..$ : chr &quot;a&quot;</code></pre>
+<p>c()- cbind can combine several lists into one. If given a combination of atomic vectors and lists, c() will coerce the vectors to lists before combining them.</p>
+<pre class="r"><code>list_new &lt;- list(list(1,2), c(3,4))
+list_second &lt;- c(list(1,2), c(3,4))
+str(list_new)</code></pre>
+<pre><code>## List of 2
+##  $ :List of 2
+##   ..$ : num 1
+##   ..$ : num 2
+##  $ : num [1:2] 3 4</code></pre>
+<pre class="r"><code>str(list_second)</code></pre>
+<pre><code>## List of 4
+##  $ : num 1
+##  $ : num 2
+##  $ : num 3
+##  $ : num 4</code></pre>
+<h3>
+Matrices and Arrays
+</h3>
+<p>Matrices are vectors with a <i>dimension</i> attribute. The dimension attribute is itself an integer vector of length 2(nrow,ncol)</p>
+<pre class="r"><code>m &lt;- matrix(nrow = 2, ncol = 3)#creating a empty matrix 
+m</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]   NA   NA   NA
+## [2,]   NA   NA   NA</code></pre>
+<pre class="r"><code>dim(m) #the dimension of the matrix </code></pre>
+<pre><code>## [1] 2 3</code></pre>
+<pre class="r"><code>attributes(m)</code></pre>
+<pre><code>## $dim
+## [1] 2 3</code></pre>
+<p>Matrices can also be created directly from vectors or list by adding a dimension attribute</p>
+<pre class="r"><code>#list to matrices
+l &lt;- list(1:3, &quot;a&quot;, TRUE, 1.0) #creating the list 
+dim(l) &lt;- c(2,2)
+l</code></pre>
+<pre><code>##      [,1]      [,2]
+## [1,] Integer,3 TRUE
+## [2,] &quot;a&quot;       1</code></pre>
+<pre class="r"><code>attributes(l)</code></pre>
+<pre><code>## $dim
+## [1] 2 2</code></pre>
+<pre class="r"><code>l[1,1] #data of row 1 and column 1 (1,1)</code></pre>
+<pre><code>## [[1]]
+## [1] 1 2 3</code></pre>
+<pre class="r"><code>#vectors to matrices 
+matrix &lt;- 1:10 #the data's in a form of vector 
+matrix</code></pre>
+<pre><code>##  [1]  1  2  3  4  5  6  7  8  9 10</code></pre>
+<pre class="r"><code>dim(matrix) &lt;- c(2,5) #using dimension attribute to create matrix
+matrix</code></pre>
+<pre><code>##      [,1] [,2] [,3] [,4] [,5]
+## [1,]    1    3    5    7    9
+## [2,]    2    4    6    8   10</code></pre>
+<p>By default matrices are constructed column-wise, so entries can be thought of starting in the “upper left” corner and running down the columns.</p>
+<pre class="r"><code>m &lt;- matrix(1:6, nrow = 2, ncol = 2)
+m </code></pre>
+<pre><code>##      [,1] [,2]
+## [1,]    1    3
+## [2,]    2    4</code></pre>
+<p>but if we want to create matrices by row then:</p>
+<pre class="r"><code>m &lt;- matrix(1:6, nrow = 3, ncol = 2, byrow = TRUE)
+m</code></pre>
+<pre><code>##      [,1] [,2]
+## [1,]    1    2
+## [2,]    3    4
+## [3,]    5    6</code></pre>
+<p><b>cbind-ing and rbind-ing</b> Matrices can be created by column-binding (cbind()) or row-binding(rbind())</p>
+<p>So now the question is <b>What is cbind() and rbind()?</b> cbind() and rbind() both create matrices by combining several vectors of the same length. cbind() combines vectors as columns, while rbind() combines them as rows.</p>
+<p>Now let’s create a matrix with numbers 1 through 30. First we will create 3 vectors of length 5 and then will combine them into one matrix.</p>
+<pre class="r"><code>x &lt;- 5:10
+y &lt;- 11:15
+z &lt;- 16:20
+
+#create a matrix where x,y,z are columns 
+cbind(x,y,z)</code></pre>
+<pre><code>## Warning in cbind(x, y, z): number of rows of result is not a multiple of vector
+## length (arg 2)</code></pre>
+<pre><code>##       x  y  z
+## [1,]  5 11 16
+## [2,]  6 12 17
+## [3,]  7 13 18
+## [4,]  8 14 19
+## [5,]  9 15 20
+## [6,] 10 11 16</code></pre>
+<pre class="r"><code>#creating matrix where x,y,z are rows 
+rbind(x,y,z)</code></pre>
+<pre><code>## Warning in rbind(x, y, z): number of columns of result is not a multiple of
+## vector length (arg 2)</code></pre>
+<pre><code>##   [,1] [,2] [,3] [,4] [,5] [,6]
+## x    5    6    7    8    9   10
+## y   11   12   13   14   15   11
+## z   16   17   18   19   20   16</code></pre>
+<p><b>Remember</b>: Matrices(vector) can either number or characters, not both. It will coerce them all to character</p>
+<pre class="r"><code>cbind(c(1, 2, 3, 4, 5),
+      c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;))</code></pre>
+<pre><code>##      [,1] [,2]
+## [1,] &quot;1&quot;  &quot;a&quot; 
+## [2,] &quot;2&quot;  &quot;b&quot; 
+## [3,] &quot;3&quot;  &quot;c&quot; 
+## [4,] &quot;4&quot;  &quot;d&quot; 
+## [5,] &quot;5&quot;  &quot;e&quot;</code></pre>
 <h2>
 S3 Atomic Vectos
 </h2>
@@ -1844,6 +1961,12 @@ S3 Atomic Vectos
 Factors
 </h3>
 <p>A factor is a vector that can contain only predefined values. It is used to store only categorical data. Factors are the data object that are used to categorize data and store it in different levels. They can store both string and integer.</p>
+<p>Factors are used to represent categorical data. Factors can be: * unordered * ordered</p>
+<p>One thing as a factor as an integer vector where each integer has a label.</p>
+<ul>
+<li>Factors are treated specially by modeling functions like lm() and glm()</li>
+<li>Using factors with labels is better than using integers because factors are self describing.</li>
+</ul>
 <pre class="r"><code>x &lt;- factor(c(&quot;a&quot;, &quot;b&quot;, &quot;b&quot;, &quot;a&quot;))
 x</code></pre>
 <pre><code>## [1] a b b a
@@ -1950,6 +2073,26 @@ difftime(time_1, time_2) #default is days</code></pre>
 <pre><code>## Time difference of -5.166667 days</code></pre>
 <pre class="r"><code>difftime(time_1, time_2, units = &quot;secs&quot;) # Apply difftime seconds</code></pre>
 <pre><code>## Time difference of -446400 secs</code></pre>
+<h3>
+Dealing with missing values
+</h3>
+<p>Missing Values are denoted by NA or NaN for undefined mathematical operations</p>
+<ul>
+<li>is.na() is used to test objects if they are NA(Missing Value)</li>
+<li>is.nan() is used to test for NaN</li>
+<li>NA values have a class also, so there are integer NA, character NA, etc.</li>
+<li>A NaN value is also NA but the converse is not true</li>
+</ul>
+<pre class="r"><code>x &lt;- c(1, 2, NA, 10, 3)
+is.na(x) #checking if there is any NA(missing values)</code></pre>
+<pre><code>## [1] FALSE FALSE  TRUE FALSE FALSE</code></pre>
+<pre class="r"><code>is.nan(x) # checking if there is any undefined (NaN) values</code></pre>
+<pre><code>## [1] FALSE FALSE FALSE FALSE FALSE</code></pre>
+<pre class="r"><code>x &lt;- c(1, 2,NaN, NA, 10, 3)
+is.na(x)</code></pre>
+<pre><code>## [1] FALSE FALSE  TRUE  TRUE FALSE FALSE</code></pre>
+<pre class="r"><code>is.nan(x)</code></pre>
+<pre><code>## [1] FALSE FALSE  TRUE FALSE FALSE FALSE</code></pre>
 
 
 
