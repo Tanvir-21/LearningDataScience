@@ -1,0 +1,676 @@
+---
+title: "Hypothesis Testing"
+author: "Softanbees Technology Pvt. Ltd."
+date: "8/10/2020"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
+library(BSDA)
+```
+
+# Introduction to Hypothesis Testing 
+
+## What is Hypothesis Testing ?
+Hypothesis testing is a decision making procedure that uses sample evidence to test the truthfulness of a statement about a population parameter. The basic idea behind hypothesis testing is to formulate a hypothesis and then decide, on the basis of sample evidence, whether to accept the hypothesis as a reasonable description of the situation or to reject it as unreasonable. 
+
+## An Analogy for Tests of Hypothesis 
+"When a person is accused of a crime, he or she faces a trial. The prosecution presents its case and jury must make a decision on the basis of the evidence presented. In fact, the jury conducts a test of hypothesis. There are actually two hypotheses that are tested. The first is called the **null hypthesis** and is represented by **H~0~**. It is
+
+$$
+\begin{align}
+H_0 &: &&\text{The defendant is innocent}
+\end{align}\
+$$
+
+The second is called the **alternative hypothesis** and denoted by **H~1~**. It is:
+$$
+\begin{align}
+H_1 &: &&\text{The defendant is Guilty}
+\end{align}\
+$$
+
+So, of course, the jury doesn't know which hypothesis is correct. They must make a decision on the basis of evidence presented by both the prosecution and defense. So there are only two possible decisions- 
+
+Either <span style = "color: red;">Convict the defendant</span> or <span style = "color: green;">Acquit the defendant</span>. 
+
+In statistical parlance, convicting the defendant is equivalent to *rejecting the null hypothesis in favor of the alternative*. Acquitting a defendant is phrased as *not rejecting the null hypothesis in favor of the alternative*.
+
+**Notice that we do not say that we accept the null hypothesis.** 
+
+In a criminal trial, that would be intepreted as finding the defendant innocent. Our justice system does not allow this decision. 
+
+## Error in hypothesis Testing:
+
+Hypothesis testing is the art of testing if variation between two sample distribution can just be explained through random chance or not. There are two kinds of error that can occur:
+
+* **Type 1 Error:** It is also known as a **"false positive"**, the error of rejecting a null hypothesis when it is actually true. In other words, this is the error of accepting an alternative hypothesis. In our example a type 1 error is made when an innocent person is wrongly convicted. The probability of a type 1 error is denoted by \(\alpha\), which is also called the significance level. 
+
+* **Type 2 Error:** It is also known as a **"false negative"**, the error of rejecting a null hypothesis when the alternative hypothesis is the true state of nature. In other words, this is the error of failing to accept an alternative hypothesis when you don't have adequate power. In our example a type 2 error occurs when a guilty defendant is acquitted.The probability of a type 2 error is denoted by \(\beta\).
+
+**N:B: The error probabilities of \(\alpha\) and \(\beta\) is inversely related, meaning that any attempt to reduce one will increase the other. **
+
+
+[A practical example with Box Model for simulating type 1 and type 2 error](https://rpubs.com/cfarmer/244571)
+
+## Critical Concepts:
+
+The critical Concepts that should be remembered:
+
+1. There are two hypotheses. One is called the *NULL HYPOTHESIS* and the other is the *ALTERNATIVE HYPOTHESIS*. 
+
+2. The testing procedures begins with the assumption that the *NULL HYPOTHESIS* is true. 
+
+3. The goal of the process is to determine whether there is enough evidence to infer that the alternative hypothesis is true.
+
+4. There are two possible decisions: reject the null hypothesis in favor of the alternative, or do not reject the null hypothesis in favor of the alternative.
+
+5. Two possible errors can be made in any test. A Type 1 error occurs when we reject
+a true null hypothesis, and a Type 2 error occurs when we do not reject a false null hypothesis. The probabilities of Type 1 and Type 2 error are:
+
+P(Type 1 error) = \(\alpha\) and P(Type 2 error) = \(\beta\).
+
+**Critical Value:** A critical value is a point (or points) on the scale of the test statistic beyond which we reject the null hypothesis, and, is derived from the level of significance \(\alpha\) of the test. ***critical value can tell us, what is the probability of two sample means belonging to the same distribution. Higher, critical value means lower the probability of two samples belonging to same distribution.*** The general critical value for a two-tailed test is 1.96, which is based on the fact that 95% of the area, of a normal distribution is within 1.96 standard deviations of the mean. 
+
+Critical Values can be used to do hypothesis testing in the following way:
+
+1. Calculate the test statistic
+
+2. Calculate critical values based on significance level alpha 
+
+3. compare test statistic with critical values. 
+
+**If the test statistic is lower than the critical value, accept the hypothesis or else reject the hypothesis.**
+
+**The Central Limit Theorem:** 
+
+When random samples of size n are taken from any population, whether or not the population itself is normal, the sample means will form an approximately normal distributed, centered on \(\mu\)~\(\bar{x}\)~ = \(\mu\), with a standard deviation equal to: $$\sigma_\bar{x}= \frac{\sigma}{\sqrt{n}}$$ for an infinite population and $$\sigma_\bar{x}= \frac{\sigma}{\sqrt{n}}\sqrt{\frac{N-n}{N-1}}$$ for a finite population.
+
+The larger n is, the better the approximation to a normal distribution. If n is chosen to be 30 or more, then the sampling distribution of means, for most practical purposes, can be considered to be a normal distribution.
+
+When the population distribution itself is normal, the sampling distribution of means is also normal regardless of sample size.
+
+
+
+## The Format for Test of Hypothesis
+
+The formal procedure of testing a hypothesis in statistical format is to follow these 5 steps:
+
+1. Formulate the null and alternative hypotheses 
+2. State the level of significance, \(\alpha\).
+3. Determine the test distribution to use.
+4. Establish a decision rule.
+5. Evaluate the evidence. 
+
+So, now we will see all these steps practically. And we will use R language to show these. In theory you will have to do each step but R will do all the steps automatically with a few lines of code.
+
+# Practical Implementation of Hypothesis Testing 
+
+According to sample size different kinds of distributions are used and differnt kinds of evidence are evaluating based on differnt tests. 
+
+Types of Tests: 
+
+1. Z- Test 
+2. T- Test 
+3. Anova Test
+4. Chi-Square Test
+
+Types of Samples Test:
+
+1. One Sample Test 
+2. Two Sample Test 
+
+Now we will go through one by one with details example:
+
+## T - Test 
+
+The T - Test also can be called as Student's t-distribution. T test tells how significant the differences between groups are; In other words it lets you know if those differences (measured in means) could have happened by chance. When will you understand you will have to do T-Test? The Answer is: if the sample size is less than 30 and if \(\sigma]\) (standard deviation) is unknown we will go for T-Test normally. 
+
+### Theoretical of T-Test:
+
+**A t-test is used to compare the mean of two given samples.** Like a z-test, a t-test also assumes a normal distribution of the sample. A t-test is used when the population parameters (mean and standard deviation) are not known.
+There are three versions of t-test
+
+1. Independent samples t-test which compares mean for two groups
+2. Paired sample t-test which compares means from the same group at different times
+3. One sample t-test which tests the mean of a single group against a known mean.
+
+The statistic for this hypothesis testing is called t-statistic, the score for which is calculated as
+
+$$z = \frac{(x1-x2)}{\frac{\sigma}{\sqrt{n1}}+\frac{\sigma}{\sqrt{n2}}}$$
+
+x1 = mean of sample 1
+x2 = mean of sample 2
+n1 = size of sample 1
+n2 = size of sample 2
+
+### One Sample T-Test - Two Tailed 
+
+The **one-sample t-test**, also known as the single parameter t test or single sample t test, is used to compare mean of one sample to a known standard (or theoretical/hypothetical) mean. 
+
+Here we will see a real life example with a mice dataset, where name of the mice and their weight is given. 
+
+#### Libraries we are going to use:
+```{r echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+library(tidyverse)
+library(ggpubr)
+library(ggplot2)
+library(rstatix)
+library(skimr)
+library(kableExtra)
+```
+
+#### Loading Demo Data 
+
+Demo Dataset: mice [in datarium package]. Contains the weight of 10 mice 
+```{r}
+data(mice, package = "datarium")
+head(mice)
+```
+
+#### Summary Statistics
+
+Using Skim from package skimr we can easily get an entire summary of the dataset. 
+
+```{r}
+skim(mice)
+```
+
+#### Visualizing the dataset 
+
+Create a boxplot to visualize the distribution of mice weights. Add also jittered points to show individual observation. The big dot represents the mean point.
+
+```{r boxplot, echo=TRUE, warning=FALSE}
+bxp <- ggboxplot(
+  mice$weight, width = 0.5, add = c("mean", "jitter"), 
+  ylab = "Weight (g)", xlab = FALSE
+  )
+bxp
+```
+
+#### Initial Hypothesis 
+
+Need to determin e whether the recruited mice average weight is different to the population normal mean weight (25g). 
+
+#### Assumptions and Preliminary tests
+
+The one sample t-test assumes the following characteristics about the data:
+
+- **No Significant outliers** in the data 
+- **Normality**. the data should be approximately normally distributed. 
+
+##### Identifying outliers 
+
+It can be easily identified by using boxplot methods, implemented in the R function in rstatix package.
+
+```{r}
+mice %>% 
+  identify_outliers(weight)
+```
+
+So there is no extreme outliers 
+
+##### Checking Normality Assumption
+
+The normality assumption can be checked by the Shapiro-Wilk test. If the data is normally distributed the p value should be greater than 0.05
+
+```{r}
+mice %>% 
+  shapiro_test(weight)
+```
+
+From the output, the p-value is greater than the significance level 0.05 so the distribution is normal. 
+
+We can also create a QQ plot of weight which draws a correlation between given data with the normal distribution 
+
+```{r}
+ggqqplot(mice, x = "weight", color = "red")
+```
+
+All the points fall approximately along with the reference, so we can conclude the normality of the data
+
+<span style = "color: red;"> **N:B: Note that, if your sample size is greater than 50, the normal QQ plot is preferred because at larger sample sizes the Shapiro-Wilk test becomes very sensitive even to a minor deviation from normality.**</span>
+
+<span style = "color: red;">**If the data are not normally distributed, it’s recommended to use a non-parametric test such as the one-sample Wilcoxon signed-rank test. This test is similar to the one-sample t-test, but focuses on the median rather than the mean.**</span>
+
+
+##### Computation 
+
+We want to know, whether the average weight of the mice differs from the 25g ?
+
+```{r}
+test <- mice %>% 
+  t_test(weight ~ 1, mu = 25, detailed = TRUE)
+test
+```
+
+Here y - the outcome variable name used in the test 
+group 1, group 2 -  generally compared groups in the pairwise tests, Here group 2 is null model
+statistics - test statistics value used to compute the p value 
+df - degrees of freedom 
+p - p value 
+estimate - the estimated weight 
+
+SO we can see that the mean weight we observed is significantly lower than the population mean weight. 
+
+t(9): 9 is the degrees of freedom
+
+```{r}
+bxp + labs(
+  subtitle = get_test_label(test, detailed = TRUE)
+)
+```
+
+A Density plot is created with p-value 
+
+* Red line corresponds to the observed mean
+* Blue line corresponds to the theoretical mean
+```{r}
+ggdensity(mice, x = "weight", rug = TRUE, fill = "lightgray") +
+  scale_x_continuous(limits = c(15, 27)) +
+  stat_central_tendency(type = "mean", color = "red", linetype = "dashed") +
+  geom_vline(xintercept = 25, color = "blue", linetype = "dashed") + 
+  labs(subtitle = get_test_label(test,  detailed = TRUE))
+```
+
+So, from the T-test we can reject our null hypothesis as the observed mean is significantly lower than the theoretical mean. 
+
+### Paired Sample T-Test - Two Tailed 
+
+The **paired sample t-test** is used to compare the means of two related group of samples. In another words, it's used in a situation where we have two pairs of values measured for same samples.
+
+For example, you might want to compare the average weight of 20 mice before and after treatment. The data contain 20 sets of values before treatment and after treatment from measuring twice the weight of the same mice. 
+
+#### Setting a Hypothesis 
+
+So, we set a hypothesis that average weight of the mice will remain same after treatment. 
+
+So, 
+$$
+\begin{align}
+H_0 &: &&\text{The average weight of the mice will remain same }
+\end{align}\
+$$
+
+And Alternative hypotheses:
+$$
+\begin{align}
+H_1 &: &&\text{The average weight of the mice will not be same}
+\end{align}\
+$$
+
+So according to our alternative hypothesis the average weight of the mice will either increase of decrease. 
+
+that means **H~1~** will less than the average
+or **H~1~** will be greater than the average 
+
+### Loading the data 
+
+```{r}
+data("mice2", package = "datarium")
+head(mice2, 3)
+```
+
+Gathering the before and after data in one column using groups 
+
+```{r}
+
+mice2_gather <- mice2 %>% 
+  gather(key = "group", value = "weight", before, after)
+
+kable(head(mice2_gather)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+kable(tail(mice2_gather)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+### Summary Statistics 
+
+Compute Summary statistics by groups:
+
+```{r}
+mice2_gather %>% 
+  group_by(group) %>% 
+  get_summary_stats(weight, type = "mean_sd")
+```
+
+### Visualization 
+
+```{r}
+bxp <- ggpaired(mice2_gather, x = "group", y = "weight",color = "group",  
+         order = c("before", "after"),
+         ylab = "Weight", xlab = "Groups")
+bxp
+```
+
+### Assumptions and preliminary Tests 
+
+The paired samples t-test assume the following characteristics about the data:
+
+- **The two groups are paired**
+- **No significant outliers**
+- **Ensure Normality**
+
+Now we will check if the assumptions are met:
+
+First we will compute the difference between two groups:
+
+```{r}
+mice2 <- mice2 %>% 
+  mutate(differences = before - after)
+
+head(mice2)
+```
+
+**Identifying the outliers**
+```{r}
+mice2 %>% 
+  identify_outliers(differences)
+```
+
+So, there is no extreme outliers 
+
+**Check the normality assumption**
+```{r}
+mice2 %>% shapiro_test(differences)
+```
+
+the p value is greater than 0.05
+
+Now QQPlot for the difference 
+```{r}
+ggqqplot(mice2, "differences", color = "red")
+```
+
+So, from the output it can be assumed that the differences are normally distributed. 
+
+### Computation 
+
+We want to know, if there is any significant difference in the mean weights after treatment.
+
+```{r}
+library(kableExtra) #For beautiful table 
+test_stat <- mice2_gather %>% 
+  t_test(weight ~ group, paired = TRUE, detailed = TRUE) %>% 
+  add_significance()
+
+kable(test_stat) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+Final Result Visualization
+
+```{r}
+test_stat <- test_stat %>% add_xy_position(x = "group")
+bxp + 
+  stat_pvalue_manual(test_stat, tip.length = 0) +
+  labs(subtitle = get_test_label(test_stat, detailed= TRUE))
+```
+
+So we can reject our null hypothesis as we can see the average weight of the mice has significantly increased after treatment. 
+
+
+## Z-Test 
+
+### What is Z-Test 
+
+A **Z-Test** is a statistical test used to determine whether two population means are different when the variances are known and the sample size is large (sample size > 30). The test statistic is assumed to have a **normal distribution**, and nuisance parameters such as standard deviation should be known in order for an accurate z-test to be performed.
+
+A z-statistics or z-score, is number representing how many standard deviation above or below the mean population a score derived from a z-test is. 
+
+### Theoretical Definition of Z-Test 
+
+In a Z-Test, the sample is assumed to be normally distributed. A Z-score is calculated with population parameters such as **"population mean"** and **"population standard deviation"** and **is used to validate a hypothesis that the sample drawn belongs to the same population**.
+
+**Null:** Sample mean is same as the population mean
+
+**Alternate:** Sample mean is not same as the population mean
+
+The statistics used for this hypothesis testing is called z-statistic, the score for which is calculated as:
+
+$$z = \frac{(x-\mu)}{\frac{\sigma}{\sqrt{n}}}$$
+
+where,
+
+\(x\) = sample mean
+\(\mu\) = population mean
+\(\frac{\sigma}{\sqrt{n}}\) = population standard deviation 
+
+if the test statistic is lower than the critical value, accept the hypothesis or else reject the hypothesis. 
+
+So, how you are supposed to know which Test to choose. Here is a small diagram for that:
+
+![Tree of Hypothesis Testing](/Users/tanvir/Desktop/softanbees_files/Hypothesis_Testing/Tree_of_testing.png )
+
+### One Sample Z-Test Practical 
+
+So for giving practical view we will create a blood pressure dataset. And the test of hypothesis is that the mean systolic blood pressure in a certain population equals 140 mmHg. The standard deviation has a known value of 20 and data set of 55 patients is available.
+
+**Creating blood pressure data set** 
+
+```{r}
+no <- seq(1:55) #taking sequence till 55
+status <- c(rep(0, 25), rep(1, 30))
+mmhg <- c(120,115,94,118,111,102,102,131,104,107,115,139,115,113,114,105,
+          115,134,109,109,93,118,109,106,125,150,142,119,127,141,149,144,
+          142,149,161,143,140,148,149,141,146,159,152,135,134,161,130,125,
+          141,148,153,145,137,147,169) 
+blood_pressure <-data.frame(no,status,mmhg)
+
+kable(head(blood_pressure)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+So the first step according to our format was to formate the hypothesis. So now we will find the mean and set the mean to our null hypothesis.
+
+```{r}
+x <- mean(blood_pressure$mmhg) #sample mean = x
+
+n <- length(blood_pressure$mmhg) #number of samples = n
+
+```
+
+So we will set our given mean value to the null hypothesis so our null hypothesis will be: 
+$$
+\begin{align}
+H_0 &: &&\text{The mean blood pressure is equals 140 mmHg}
+\end{align}\
+$$
+
+so the alternate hypotheses will be: 
+
+$$
+\begin{align}
+H_1 \neq 140 &: &&\text{The mean blood pressure is not equals 140 mmHg}\\
+H_1 \le 140 &: &&\text{The mean blood pressure is less than 140 mmHg} \\
+H_1 \ge 140 &: &&\text{The mean blood pressure is greater than 140 mmHg}
+\end{align}\
+$$
+
+```{r}
+mu0 <- 140 #setting the mean value under the null hypothesis 
+
+sigma <- 20 #set the known sigma 
+```
+
+**Now we will test the hypothesis with the z.test function in  R**
+
+N:B: becor using this function install BSDA package 
+
+```{r}
+z_value <- z.test(x = blood_pressure$mmhg, alternative = "two.sided",mu = 140, sigma.x = 20,conf.level = 0.95)
+
+z_value
+```
+
+So, from this function we got everything that we need so we got that true mean is not equal to 140. mean is 130 
+
+So mean is less than the hypothesized mean. Here we did two tail test. 
+
+so, here if we did upper tailed z-test we had to rewrite the code in this way.
+```{r}
+z_value <- z.test(x = blood_pressure$mmhg, alternative = "greater",mu = 140, sigma.x = 20,conf.level = 0.95)
+```
+
+So here the p value is very large. 
+
+now for lower tail test 
+
+```{r}
+z_value <- z.test(x = blood_pressure$mmhg, alternative = "less",mu = 140, sigma.x = 20,conf.level = 0.95)
+```
+
+p value has changed here. 
+
+### TWO Sample Z-Test Practical 
+
+Now let's do it for two samples. 
+
+**Creating a dataset.** 
+
+```{r}
+x <- c(7.8, 6.6, 6.5, 7.4, 7.3, 7., 6.4, 7.1, 6.7, 7.6, 6.8)
+y <- c(4.5, 5.4, 6.1, 6.1, 5.4, 5., 4.1, 5.5)
+
+```
+
+So now, the question is:
+
+Here in this dataset both sigma of x and y are 0.5. The null hypothesis is that the population mean for "X" less that for "Y" is 2. The alternative hypothesis is that the difference is not 2.
+
+And this is a two tailed test and confidence interval is 95% 
+
+```{r}
+z.test(x, sigma.x=0.5, y, sigma.y=0.5, mu=2, conf.level = 0.95)
+```
+So we can see that alternative hypothesis is true. and mean is: 7.018 for x and 5.263 for y.
+
+## ANOVA 
+
+**ANOVA, also known as *Analysis of variance*, is used to compare multiple (three or more) samples with a single test.** There are two major flavors of ANOVA:
+
+1. **One-way ANOVA:** It is used to compare the difference between the three or more samples/groups of a single independent variable.
+
+2. **MANOVA (Multivariate Analysis of Variance):** MANOVA allows us to test the effect of one or more independent variable on two or more dependent variables. In addition, MANOVA can also detect the difference in co-relation between dependent variables given the groups of independent variables.
+
+The hypothesis is being tested in ANOVA is:
+
+**Null:** All pairs of samples are same i.e. all sample means are equal.
+
+**Alternate:** At least one pair of samples is significantly different
+
+The statistics used to measure the significance, in this case, is called F-statistics. The F value is calculated using the formula:
+
+$$F = \frac{\frac{(SSE1-SSE2)}{m}{\frac{SSE2}{n-k}}$$
+
+SSE = residual sum of squares
+m = number of restrictions
+k = number of independent variables
+n = number of samples 
+
+Here we will see practical implementation of:
+
+1. One way Anova
+2. Pairwise Comparison 
+3. Two way Anova 
+
+### One way Anova Practical 
+
+We will use poison dataset to implement the one-way ANOVA test. The dataset contains 48 rows and 3 variables:
+
+- Time: Survival time of the animal
+- Poison: type of poison usedL factor level: 1,2 and 3
+- treat: Type of treatment used: factor level: 1,2,3
+
+Before you start to compute the ANOVA test, we will prepare the data
+
+```{r}
+PATH <- "https://raw.githubusercontent.com/guru99-edu/R-Programming/master/poisons.csv" #Import the data
+
+#Remove the unncessary variables and convert the variable poison as ordered level
+poison_df <- read.csv(PATH) %>% 
+  select(-X) %>% 
+  mutate(poison = factor(poison, ordered = TRUE)) %>% 
+  glimpse() 
+```
+
+Our objective is to test the following assumption:
+
+- **H~0~: There is no difference in survival time average between group**
+- **H~1~: The survival time average is different for at least one group.**
+
+In other words, you want to know if there is a statistical difference between the mean of the survival time according to the type of poison given to the Guinea pig.
+
+step 1: check the level of the poison. 
+```{r}
+levels(poison_df$poison)
+```
+
+step 2: Compute the mean and standard deviation.
+```{r}
+summarised_data <- poison_df %>% 
+  group_by(poison) %>% 
+  summarise(
+    count_poison = n(),
+    mean_time = mean(time, na.rm = TRUE),
+    sd_time = sd(time,na.rm = TRUE) 
+  )
+kable(head(summarised_data)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+step 3: graphically check if there is a difference between the distribution. Note that jittered dots are included
+
+```{r}
+ggplot(poison_df, aes(x = poison, y = time, fill = poison)) +
+    geom_boxplot() +
+    geom_jitter(shape = 15,
+        color = "steelblue",
+        position = position_jitter(0.21)) +
+    theme_classic()
+```
+
+step 4: Run the ANOVA test with aov command in R
+
+```{r}
+anova_one_way <- aov(time~poison, data = poison_df)
+summary(anova_one_way)
+```
+
+The p-value is lower than the usual threshold of 0.05. You are confident to say there is a statistical difference between the groups, indicated by the "*"
+
+**Pairwise Comparison**
+The one-way ANOVA test does not inform which group has a different mean. Instead, you can perform a Tukey test with the function TukeyHSD().
+```{r}
+TukeyHSD(anova_one_way)
+```
+
+### Two way ANOVA
+
+A two-way ANOVA test adds another group variable to the formula. It is identical to the one-way ANOVA test, though the formula changes slightly with is quantitative and categorial variables. 
+
+Our objective is to test the following assumption:
+
+- **H~0~: The means are equal for both variables (i.e., factor variable)**
+- **H~1~: The means are different for both variables**
+
+We will add treat variable to our model. This variable indicates the treatment given to the Guinea pig. We will see if there is a statistical dependence between the poison and treatment given to the Guinea pig.
+
+We adjust our code by adding treat with the other independent variable.
+
+```{r}
+anova_two_way <- aov(time~poison + treat, data = poison_df)
+summary(anova_two_way)
+```
+
+You can conclude that both poison and treat are statistically different from 0. You can reject the NULL hypothesis and confirm that changing the treatment or the poison impact the time of survival.
+
