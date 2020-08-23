@@ -1,0 +1,528 @@
+---
+title: "Data_Manipulation"
+author: "Softanbees Technology Pvt. Ltd."
+date: "8/13/2020"
+output: 
+    html_document:
+      toc: true
+      toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(kableExtra)
+library(hflights) # Dataset
+```
+
+# Introduction to Data Manipulation 
+
+One of the most significant challenges faed by data scientist is the data manipulation. Data is never available in desired format. The data scientist needs to spend at least half of his time cleaning and manipulation. That is one of the most critical assignments in the job. If the data manipulation propcess is not complete, precise and rigorous, the model will not perform correctly. 
+
+R has a library called dplyr to help in data transformation. The dplyr library is fundamentally created around four functions to manipulate the data and five verbs to clean the data. After that we can use ggplot library to analyze and visualize the data. 
+
+<https://dplyr.tidyverse.org> [This is the library of tidyverse]
+
+## What is the purpose of data manipulation?
+
+Data manipulation is crucial for business operations and optimization, as it allows for the organization of data for better clarity and readability. It lets you work with the data in which you need it. It is beneficial for the business because of the following factors.
+
+1. **Data Consistency** - Consistency in data allows it to be read and understood. Data from various sources may not have a unified view. However, data manipulation makes it easy for organizing and storing it.
+
+2. **Data Projection** - Data manipulation makes it possible to use historical data for projecting the future and providing in depth analysis, especially when it comes to financial transactions. 
+
+3. **Create value from data**- Data manipulation enables you to edit, delete, insert, or transform data. Thus you can do more with the available data. When you know how to use data, it becomes better for your business. 
+
+4. **Remove Unnecessary Data**- Data can contain unless figures. Data manipulation allows you to remove unusable data. Cleansing your recodrs is possible with data manipulation. 
+
+# Practical Implementation 
+
+## Merge with dplyr() 
+
+dplyr provides a nice and convenient way to combine datasets. We may have many sources of input data, and at some point, we need to combine them. A join with dplyr adds variables to the right of original dataset. It handles four types of joins similar to sql:
+
+- Left_join()
+- right_join()
+- inner_join()
+- full_join()
+
+**Building dataset:**
+
+We will create two datasets. Table 1 contains two variables, ID, and y, whereas Table 2 gathers ID and z. In each sutuation, we need to have **key-pair** variable. In our case, ID is our key variable. 
+
+```{r}
+df_table1 <- tribble(
+  ~ID, ~y,
+   "A", 5,
+   "B", 5,
+   "C", 8,
+   "D", 0,
+  "F", 9
+)
+
+kable(df_table1) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+df_table2 <- tribble(
+  ~ID, ~y,
+   "A", 30,
+   "B", 21,
+   "C", 22,
+   "D", 25,
+   "E", 29
+  )
+
+kable(df_table2) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+### left_join() 
+
+The most common way to meerge two datasets is to use the left_join() function. With left join we will keep all the variables in the original table and don't consider the variables that do not have a key paired in the destination table. 
+```{r}
+left_join(df_table1, df_table2, by = 'ID')
+```
+So, here you can see all records from the left table (table 1), and the matched records from the right table (table 2) are in the new table. The null result formed because of no match. 
+
+### right_join()
+
+The right_join() function works exactly like left_join(). The only difference is the row dropped. The value E, available in the destination data frame, exists in the new table and takes the value NA for the column y.
+
+```{r}
+right_join(df_table1, df_table2, by = 'ID')
+```
+
+### inner_join() 
+
+When we are 100% sure that the two datasets won't match, we can consider to return only rows existing in both dataset. This is possible when we need a clean dataset or when we don't want to impute missing values with the mean or median.
+
+The inner_join()comes to help. This function excludes the unmatched rows.
+
+```{r}
+inner_join(df_table1, df_table2, by = 'ID')
+```
+
+### full_join()
+
+The full join function keeps all the observations and replace missing values with NA.
+
+```{r}
+full_join(df_table1, df_table2, by = 'ID')
+```
+
+### semi_join()
+
+A semi join returns the rows of the first table only where it can find a match in the second table. 
+```{r}
+semi_join(df_table1, df_table2, by = 'ID')
+```
+
+### anti_join()
+
+anti_join() function filters table 1 to only show the observation that don't match with table 2
+
+```{r}
+anti_join(df_table1, df_table2, by = 'ID')
+```
+
+
+### Multiple Keys Pairs 
+
+We can have multiple keys in our dataset. Consider the following dataset where we have years or a list of products bought by the customer.
+
+```{r}
+df_primary <- tribble(
+  ~ID, ~year, ~items,
+  "A", 2015,3,
+  "A", 2016,7,
+  "A", 2017,6,
+  "B", 2015,4,
+  "B", 2016,8,
+  "B", 2017,7,
+  "C", 2015,4,
+  "C", 2016,6,
+  "C", 2017,6)
+df_secondary <- tribble(
+  ~ID, ~year, ~prices,
+  "A", 2015,9,
+  "A", 2016,8,
+  "A", 2017,12,
+  "B", 2015,13,
+  "B", 2016,14,
+  "B", 2017,6,
+  "C", 2015,15,
+  "C", 2016,15,
+  "C", 2017,13)
+
+left_join(df_primary, df_secondary, by = c('ID', 'year'))
+```
+If we try to merge both tables, R throws an error. To remedy the situation, we can pass two key-pairs variables. That is, ID and year which appear in both datasets. We can use the following code to merge table1 and table 2. This is kind opf like primary key and foreign key. 
+
+## Cleaning and playing with the verbs of dplyr
+
+Now we will use the verbs here. 
+
+- **mutate() :** adds new variables that are functions of existing variables
+
+- **select() :** picks variables based on their names
+
+- **filter() :** picks cases based on their values 
+
+- **summarise() :** reduces multiple values down to a single summary.
+
+- **arrange() :** changes the ordering of the rows 
+
+### Let's first look at the dataset
+
+```{r}
+data("hflights")
+
+kable(head(hflights)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+```
+
+Now we will use as_tibble() function to create a local data frame. **Local data frame is simply a wrapper for a data frame that prints nicely.**
+
+```{r}
+#convert to local data frame
+flights <- as_tibble(hflights)
+
+kable(head(flights)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+
+```
+
+
+Now we will go through each verbs and compare them with base R approach and dplyr approach. 
+
+### filter : keep rows matching criteria 
+
+Base R approach to filtering process forces you to repeat the data frame's name 
+
+```{r}
+#base R approach to view all flights on january 1 
+flights_january <- flights[flights$Month == 1 & flights$DayofMonth == 1, ]
+kable(head(flights_january)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+```
+
+In dplyr approach it is simpler to apply and easy to write and read
+
+Command structure:
+
+* first argument is a data frame
+* return value is a data frame 
+* nothing is modified in place 
+
+dplyr generally does not preserve row names 
+
+```{r}
+flights_dplyr_january <- flights %>% 
+  filter(Month == 1 & DayofMonth == 1)
+
+kable(head(flights_dplyr_january)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+
+```
+Here we have used and (&) operator for implementing a joint and condition. Let's see use of OR (|) operator also 
+
+```{r}
+#show the flights with 'AA' or 'UA' characters 
+flights_carrier <- flights %>% 
+  filter(UniqueCarrier == "AA" | UniqueCarrier == "UA")
+
+kable(head(flights_carrier)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+
+```
+
+'%in%' operator also can be used to do the work of or operator.
+```{r}
+flights %>% 
+  filter(UniqueCarrier %in% c("AA","UA")) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+
+```
+
+For filtering a specific region in between dplyr has a function name between which has added in dplyr 0.3 and 0.4 package. Between() is a concise alternative for determining if numeric values fall in a range. 
+
+```{r}
+flights_between <- flights %>% 
+  filter(between(DepTime, 600, 603)) %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+  
+flights_between 
+```
+
+**Use of Slicing feature in filter in dplyr package**
+```{r}
+#slice() filters rows by specific position 
+flights %>% 
+  slice(1000:1005)
+
+#keep the first three roiws within each group 
+flights %>% 
+  group_by(Year, Month) %>% 
+  slice(1:3) %>% 
+   kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+
+#sample three random rows from each group 
+flights %>% 
+  group_by(DayofMonth, DayOfWeek) %>% 
+  sample_n(3) %>% 
+   kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+
+#keep three rows from each group with top departure delay and sort by departure delay in descending order 
+flights %>% 
+  group_by(DayofMonth, DayOfWeek) %>% 
+  top_n(3, DepDelay) %>% 
+  arrange(desc(DepDelay)) %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+```
+
+### Select 
+
+Pick columns by name. Select statement used to pick the exact columns that will be in use.
+
+Base R approach use cbind to to select the columns 
+
+```{r}
+flights[, c("DepTime", "ArrTime", "FlightNum")]
+```
+
+dplyr approach is more similar to sql and structured
+
+```{r}
+flight_select <- flights %>% 
+  select(DepTime, ArrTime, FlightNum) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+
+flight_select
+```
+
+Some important notes about select statement:
+
+- use colon to select multiple contiguous coloumns, and use **contains** to match columns by name
+
+- **starts_with**, **ends_width**, and **matches** (for regular experession) can also be used to match columns by name 
+
+```{r}
+flights %>% 
+  select(Year:DayofMonth, contains("Taxi"), contains("Delay")) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+
+```
+
+"%>%" is chaining method with this you can run multiple function at a time. We have used this with our every function.
+
+even you can select your desired column and filter accordingly with the chaining method.
+
+```{r}
+flights %>% 
+  select(UniqueCarrier, DepDelay ) %>% 
+  filter(DepDelay > 60) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+```
+
+For hiding any column you can use select statement. Supporse you want to hide the DayofMonth and DayOfWeek column.
+```{r}
+flights %>% 
+  select(-DayofMonth, -DayOfWeek) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+```
+
+Now for hiding a range of column.
+```{r}
+#hide ArrTime to Distance 
+flights %>% 
+  select(-(ArrTime:Distance)) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+
+
+#hide any column with the matching name 
+flights %>% 
+  select(-contains("Time")) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+```
+
+In the new feature of dplyr 0.3 and 0.4 package there is a new functionality called **one of**. It can pick columns using a character vector of column names.
+```{r}
+cols <- c("Month", "ArrTime", "ActualElapsedTime")
+flights %>% 
+  select(one_of(cols)) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+
+```
+
+Now if you want to rename a column. You can use rename function. 
+```{r}
+flights %>% 
+  rename(Departure_Time = DepTime) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+  
+```
+
+
+
+### arrange
+
+The dplyr function arrange() can be used to reorder(or sort) rows by one or more varibales.
+
+```{r}
+#base R aprroach to select uniquecarrier and DepDelay columns and sort by DepDelay 
+flights[order(flights$DepDelay), c("UniqueCarrier", "DepDelay")]
+```
+
+dplyr aprroach of the same code 
+```{r}
+flights %>% 
+  select(UniqueCarrier, DepDelay) %>% 
+  arrange(DepDelay) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+```
+
+By default the arrange() function follows ascending order. Now if we want to use descending then:
+
+```{r}
+#descending order
+flights %>% 
+  select(UniqueCarrier, DepDelay) %>% 
+  arrange(desc(DepDelay)) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+```
+
+### mutate
+
+Add new variables. Mainly mutate function create new variables that are functions of existing variables. 
+
+```{r}
+#base R approach to create new variable speed(in mph)
+flights$speed <- flights$Distance / flights$AirTime*60
+flights[,c("Distance", "AirTime", "speed")]
+
+```
+
+now let's see dplyr approach to see how the same thing works using dplyr 
+
+```{r}
+flights %>% 
+  select(Distance, AirTime) %>% 
+  mutate(speed = Distance / AirTime*60) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+
+#now if you only want to keep the new variable you can use transmute() function.
+flights %>% 
+  select(Distance, AirTime) %>% 
+  transmute(speed = Distance / AirTime*60)
+
+```
+
+### summarise()
+
+**summarise()** creates a new data frame. It will have one (or more) rows for each combination of grouping variables; if there are no grouping variables, the output will have a single row summarising all observations in the input.
+
+group_by() creates the groups that will be operated on and summarise() uses the provided aggregation function to summarise each group. 
+
+```{r}
+#base R approaches to calculate the average arrival delay to each destination
+
+head(with(flights, tapply(ArrDelay, Dest, mean, na.rm = TRUE)))
+head(aggregate(ArrDelay~Dest, flights, mean))
+```
+
+dplyr approach: Create a table grouped by Dest, and then summarise each group by taking the mean ArrDelay 
+```{r}
+flights %>% 
+  group_by(Dest) %>% 
+  summarise(avg_delay = mean(ArrDelay, na.rm = TRUE)) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+```
+
+With summarise_each() you can apply the same function to multiple columns at once.
+```{r}
+#for each carrier, calculate the percentage of flights canelled or diverted 
+flights %>% 
+  group_by(UniqueCarrier) %>% 
+  summarise_each(funs(mean), Cancelled, Diverted) %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+```
+
+```{r}
+#for each carrier calculate the minimum and maximum arrival and departure delays
+flights %>% 
+  group_by(UniqueCarrier) %>% 
+  summarise_each(funs(min(., na.rm = TRUE), max(., na.rm = FALSE)),matches("Delay")) %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+```
+
+```{r}
+#for each destination, count the total number of flights and the number of distinct planes that flew there
+
+flights %>% 
+  group_by(Dest) %>% 
+  summarise(flights_count = n(), plane_count = n_distinct(TailNum)) %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+```
+
+
