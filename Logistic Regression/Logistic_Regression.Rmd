@@ -1,0 +1,287 @@
+---
+title: "Logistic Regression"
+author: "Softanbees Technologies Pvt. Ltd."
+date: "8/17/2020"
+output: 
+    html_document:
+      toc: true
+      toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidymodels)
+library(caTools)
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(skimr)
+library(broom)
+library(yardstick)
+library(gridExtra)
+library(GoodmanKruskal)
+library(vcd)
+library(bestglm)
+library(pROC)
+library(caret)
+library(kableExtra)
+library(broom)
+```
+
+# Introduction 
+
+Logistic Regression is a classification algorithm used to assign observations to a discrete set classes. Unlike linear regression which outputs continuous number values, logistic regression transform its output using the logistic sigmoid function to return a probability value which can then be mapped to two or more discrete classes. 
+
+# The Theories behind logistic regression
+## What is Wrong with Linear Regression for Classification?
+
+When the response variable has only 2 possible values, it is desirable to have a model that predicts the value either as 0 or 1 or as a probability score that ranges between 0 and 1. 
+
+Linear regression does not have that capability. Because if you use linear regression to model a binary response varibalbe, the resulting model may not restrict the predicted Y values within 0 and 1. 
+
+![linear vs logistic](/Users/tanvir/Desktop/softanbees_files/Logistic\ Regression/linear_vs_logistic_regression.jpg)
+
+This is where logistic regression comes into play. In logistic regression you get a probability score that reflects the probability of the occurence of the event. 
+
+An event in this case is each row of the training dataset. It could be something like classifying if a given email is spam, or mass of cell is malignant or a user will buy a product and so on.
+
+## Logistic function and Theories
+
+### Estimated Regression Equation 
+
+The natuaral logarithm of the odds ratio is equivalent to a linear function of the independent variables. The antilog of the logit function allows us to find the estimated regression equation. 
+
+$$logit(p) = ln\frac{p}{1-p} = \beta_0 + \beta_1x_1$$
+
+This the logit function and antilog is:
+
+$$\frac{p}{1-p} = e^{\beta_0 + \beta_1x_1}$$
+$$p = e^{\beta_0 + \beta_1x_1} (1-p)$$
+and after derivation we will find the estimated regression equation, which is:
+
+$$\hat{p} = \frac{e^{\beta_0 + \beta_1x_1}}{1 + e^{\beta_0 + \beta_1x_1}}$$
+here \(\hat{p}\) = predicted output 
+\(\b_0\) = bias or intercept term 
+\(\b_1\) = the coefficient for the single input value(\(\x_1\)) . Each column in your input data has an associated b coefficient (a constant real value) that must be learned from your training data.
+
+Now we have some confusion about logit? then let's clear it up.
+
+### What is logit?
+
+In logistic regression we do not know p like we do in Binomial (Bernoulli) distribution problems. THe goal of logistic regression is to estimate p for a linear combination of independent variables. Estimate of p is \(\hat{p}\), p hat.
+
+To tie together our linear combination of variables and in essence the Bernoulli distribution we need a function that links them together, or maps the linear combination of variables that could result in any value onto the Bernoulli probability distribution with a domain from 0 to 1. The natural log of the odds ratio, the logit, is that link function.
+
+ln(odds) we can rewrite it to,
+$$ln\frac{p}{1-p}$$
+is the logit(p) or ln(odds)
+
+**Inverse Logit**
+Here from the logit function we get the probabilities in the x axis. But we want our probabilities in the y axis. SO that we will inverse the logit function.
+
+$$logit(p) = ln\frac{p}{p-1}$$
+where p is between 0 and 1 in the x axis.
+
+now after doing the inversion:
+
+$$logit^{-1}(\alpha) = \frac{e^{\alpha}}{1+e^{\alpha}}$$
+
+here \(\alpha\) = linear combination of variables and their coefficients. 
+
+The inverse logit will return the probability of being a "1" or in the "event occurs" group.
+
+The inverse logit sometimes called the mean function.
+
+$$\mu_{y|x} = \frac{e^{\alpha}}{1+e^{\alpha}}$$
+
+**Note about coefficients**
+The regression coefficients for logistic regression are calculated using maximum likelihood estimation or MLE. 
+<https://www.youtube.com/watch?v=XepXtl9YKwc> this is link for learning about maximum likelihood.
+
+# Practical Implementation
+
+## Details about the dataset
+
+The Framingham Heart Study is a long term prospective study of the etiology of cardiovascular disease among a population of free living subjects in the community of Framingham, Massachusetts. The Framingham Heart Study was a landmark study in epidemiology in that it was the first prospective study of cardiovascular disease and identified the concept of risk factors and their joint effects FHS Longitudinal Data Document.
+
+The dataset is a rather small subset of possible FHS dataset, having 4240 observations and 16 variables. The variables are as follows:
+
+* sex: the gender of the observations. the variable is a binary named "male" in the dataset. 1 is male and 0 female 
+
+* age: Age at the time of medical examination in years
+* education: A categorical variable of the participants, with the levels: Some high school(1), high School/GED(2), some college/vocational school(3), college(4)
+
+* currentSmoker: Current cigarette smoking at the time of examination. 
+* cigsPerDay: Number of cigarettes smoked each day
+* BPmeds: Use of Anti-hypertensive medication at exam
+* prevalentStroke: Prevalent Stroke (0 = free of disease)
+* prevalentHyp: Prevalent Hypertensive. Subject was defined as hypertensive if treated
+* diabetes: Diabetic according to criteria of first exam treated
+* totChol: Total cholesterol (mg/dL)
+* sysBP: Systolic Blood Pressure (mmHg)
+* diaBP: Diastolic blood pressure (mmHg)
+* BMI: Body Mass Index, weight (kg)/height (m)^2
+* heartRate: Heart rate (beats/minute)
+* glucose: Blood glucose level (mg/dL)
+* And finally the response variable : + TenYearCHD : The 10 year risk of coronary heart disease(CHD).
+
+## Insert and explore the datasets
+
+```{r}
+heart <- read_csv("/Users/tanvir/Desktop/softanbees_files/Logistic\ Regression/framingham.csv")
+
+heart %>% 
+  head() %>% 
+  kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  scroll_box(width = "800px", height = "200px")
+
+```
+## Exploring the dataset 
+
+Let's see how is our data. How many NA's are there.
+```{r}
+#number of missing observation in total
+missing.oberservation <- sum(is.na(heart))
+missing.oberservation
+```
+
+Now with the help of skimr library's skim() command we can find missing variable in specific points.
+
+```{r}
+skim(heart)
+```
+
+From here we can see education has 105 NA's , cigsPerDay has 29 NA's, BPMeds has 53 NA's, totChol has 50 NA's, BMI has 19 and glucose has 388 NA's. 
+
+## Cleaning the data 
+
+For the purposes of exploring the effect of major risk factors on absolute short term coronary heart disease, we remove the variables education, BPMeds, and heartRate.The variable cigsPerDay contains twenty- nine missing values. We do not exactly know why this variable contains some null values. However, we do need to leave it in our data set because the values of cigsPerDay (which is the average number of cigarettes per day the patient smokes) have been used in the construction of other categorical variables that have been calculated by us. We do not remove totChol for the same reason. On another note, we notice that the variable currentSmoker does not have any null values. Since this is the case, we hypothesize about why there are missing values in cigsPerDay. Some of them could of these hypotheses are:
+
+* The patient is an intermittent smoker (they don't smoke everyday)
+* They are trying to quit and during cessation they became labeled as an intermittent smoker.
+* They have recently quit. However, they have not been smoke free long enough to be labeled as a non smoker. 
+
+imilarly, we don’t know exactly why the variables BPMeds, BMI, heartRate, and glucose have null values. We are not interested in quantifying the effect of blood pressure medication on absolute short-term CHD risk. We avoid these missing cases by simply removing the BPMeds from our data set. Finally, we do not know exactly why there are some missing measurements of BMI, heartRatem, and glucose. However, we do not use any estimation method that can be used to fill in null values. Finally, we remove glucose and rely on the dummy variable diabetes to represent the diabetes mellitus risk factor rather than glucose measurements. We also eliminate heartRate.
+
+```{r}
+Cleaned.heart.Data <- na.omit(data.frame(heart[,-c(3,6,14)]))
+skim(Cleaned.heart.Data)
+```
+
+In our cleaned data set we don't have any missing variable.
+
+Now we will explore the dataset.
+
+**The number of smokers without absolute short-term CHD Risk is:**
+```{r}
+Cleaned.heart.Data %>% 
+  filter(currentSmoker == 1 & TenYearCHD == 0) %>% 
+  select(currentSmoker, TenYearCHD) %>% 
+  summarise(sum_smoker_not_CHD = sum(currentSmoker))
+```
+**The number of non-smokers with absolute short-term CHD Risk is:**
+```{r}
+Cleaned.heart.Data %>% 
+  filter(currentSmoker == 0 & TenYearCHD == 1) %>% 
+  select(currentSmoker, TenYearCHD) %>% 
+  summarise(sum_non_smoker_CHD = sum(TenYearCHD))
+```
+**The number of non-smokers without absolute short-term CHD Risk is:**
+```{r}
+Cleaned.heart.Data %>% 
+  filter(currentSmoker == 0 & TenYearCHD == 0) %>% 
+  select(currentSmoker) %>% 
+  summarise(non_smoker_without_short_term = n())
+```
+
+## Bi-variate plots of the dataset
+
+Now we can venture on having some bi-variate visualizations, specially in order to see the relation between response variable(TenYearCHD) and predictors. Not all pair of variables can be investigated due to deluge number of plots! We can move back to this step later and deeper understanding.
+
+The following code can generate all the bi-variate plots of the response variable. Since the response variable is a binary variable, we would either have boxplots, when the predictor is quantitative, or segmented bar plots, when the predictor is a qualitative variable.
+
+```{r message=FALSE, warning=FALSE}
+dataset <- data.frame(heart)
+ptlist_bi <- list()
+
+for (var in colnames(dataset)) {
+  if(class(dataset[,var]) %in% c("factor", "logical")){
+    ptlist_bi[[var]] <- ggplot(data = dataset) +
+      geom_bar(aes_string(x = var, fill= "TenYearCHD"), position = "fill")+
+      theme_linedraw()+
+      xlab(var)
+  }
+  else if(class(dataset[,var]) %in% c("numeric","double","integer") ) {
+    ptlist_bi[[var]] <- ggplot(data = dataset) + 
+      geom_boxplot(aes_string(y = var, x ="TenYearCHD" )) + 
+      theme_linedraw() +
+      xlab("TenYearCHD") + 
+      ylab(var)
+  }
+}
+marrangeGrob(grobs=ptlist_bi, nrow=2, ncol=2)
+```
+
+have here, being male is directly related to TenYearCHD, thus the variable male seems a relatively good predictor. Similarly, Age seems a good predictor since the patients with TenYearCHD == TRUE, have higher median of age, with almost a similar distribution. In contrast, there seems no relation between different categories of the education and the response variable. The current Smoker variable shows a slight relation with the response variable, as the current smokers have a slightly higher risk of TenYearCHD. With the same manner we can investigate remaining plots.
+
+## Splitting the dataset
+Randomly splitting the data into train and test sets 
+```{r}
+set.seed(1000)
+split = sample.split(Cleaned.heart.Data$TenYearCHD, SplitRatio = 0.65)
+train = subset(Cleaned.heart.Data, split == TRUE)
+test = subset(Cleaned.heart.Data, split == FALSE)
+```
+
+## Creating Model
+```{r}
+heartlog = glm(TenYearCHD ~. , data = train, family = binomial) 
+summary(heartlog)
+```
+Here male, age, cigsPerDay, totChol and sysBP is significant. 
+
+**Creating model with significant value:**
+```{r}
+modheartnew = glm(formula = TenYearCHD ~ male + age + cigsPerDay + sysBP + glucose, data = train, family = binomial)
+
+summary(modheartnew)
+```
+
+**New variable only using the significant variables**
+```{r}
+attach(test)
+CHDheartupdated <- data.frame(male, age, cigsPerDay, prevalentStroke, prevalentHyp, sysBP, glucose, TenYearCHD)
+```
+
+## Validating the model 
+```{r}
+attach(CHDheartupdated)
+
+modheartnew.probs <- predict(object = modheartnew, newdata = CHDheartupdated, type = "response" )
+```
+
+**Produce confusion matrix**
+```{r}
+confusion_matrix_tab = (table(actual_value = CHDheartupdated$TenYearCHD , predicted_value = modheartnew.probs > 0.2 ))
+confusion_matrix_tab
+sum(diag(confusion_matrix_tab)/sum(confusion_matrix_tab))
+```
+
+## Creating ROC Curve 
+```{r}
+par(pty = "s")
+modheartnew.ROC <- roc(response = TenYearCHD,
+                       predictor = modheartnew.probs,
+                       plot = TRUE, legacy.axes = TRUE,
+                       ylab = "Sensitivity", col = "blue",
+                       col.axis = "blue", col.lab = "blue",
+                       col.main = "blue", 
+                       main = "ROC curve for Logistic Regression Model")
+modheartnew.ROC$auc
+
+coords(roc = modheartnew.ROC, x = "best", best.method = "youden")
+```
+
+This is how logistic model's are made. 
+
